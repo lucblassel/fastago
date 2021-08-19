@@ -1,0 +1,5 @@
+# binaries
+bin/
+
+# test fasta files
+test.fasta
