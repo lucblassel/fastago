@@ -1,5 +1,5 @@
 /*
-Copyright © 2021 NAME HERE <EMAIL ADDRESS>
+Copyright © 2021 LUC BLASSEL
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,13 +16,10 @@ limitations under the License.
 package cmd
 
 import (
-	"bufio"
 	"fmt"
-	"io"
-	"log"
-
 	"github.com/lucblassel/fastago/pkg/seqs"
 	"github.com/spf13/cobra"
+	"io"
 )
 
 // countCmd represents the count command
@@ -30,57 +27,36 @@ var countCmd = &cobra.Command{
 	Use:   "count",
 	Short: "count the number of sequences in a fasta file",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		records := make(chan seqs.SeqRecord)
-		errs := make(chan error)
-		go seqs.ReadFastaRecords(inputReader, records, errs)
-
-		count := 0
-
-		for records != nil && errs != nil {
-			select {
-			case <-records:
-				count++
-			case err := <-errs:
-				if err != nil {
-					return err
-				}
-				fmt.Fprintln(outputWriter, count)
-				return nil
-
-			}
-		}
-
-		return nil
+		var err error
+		count, err := countSeqs(inputReader)
+		_, err = fmt.Fprintln(outputWriter, count)
+		return err
 	},
 }
 
 func init() {
 	statsCmd.AddCommand(countCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// countCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// countCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func countSeqs(input io.Reader, output io.Writer) {
-	scanner := bufio.NewScanner(input)
+func countSeqs(input io.Reader) (int, error) {
+	records := make(chan seqs.SeqRecord)
+	errs := make(chan error)
+	go seqs.ReadFastaRecords(input, records, errs)
+
 	count := 0
 
-	for scanner.Scan() {
-		line := scanner.Text()
-		if len(line) != 0 && line[0] == '>' {
+	for records != nil && errs != nil {
+		select {
+		case <-records:
 			count++
+		case err := <-errs:
+			if err != nil {
+				return 0, err
+			}
+			return count, nil
+
 		}
 	}
-	if err := scanner.Err(); err != nil {
-		log.Fatal("Error in counting sequences: ", err)
-	}
 
-	fmt.Fprintln(output, count)
+	return count, nil
 }
