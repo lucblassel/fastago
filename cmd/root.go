@@ -18,6 +18,7 @@ package cmd
 import (
 	"compress/bzip2"
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -35,6 +36,24 @@ var inputCompression string
 var inputReader io.Reader
 var outputWriter io.Writer
 
+type compAlg string
+const (
+	GZ compAlg = "gz"
+	XZ = "xz"
+	BZ2 = "bz2"
+	None = ""
+	)
+
+func (comp compAlg) isValid() error {
+	fmt.Println("comp", comp)
+	switch comp {
+	case None, GZ, XZ, BZ2:
+		return nil
+	}
+	return errors.New("invalid compression method.")
+}
+
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "fastago",
@@ -51,13 +70,21 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initReader, initWriter)
+	cobra.OnInitialize(initReader, initWriter, checkCompression)
 
 	rootCmd.PersistentFlags().StringVarP(&inputFileName, "input", "i", "", "input file (default is stdin)")
 	rootCmd.PersistentFlags().StringVarP(&outputFileName, "output", "o", "", "output file (default is stdout)")
-	rootCmd.PersistentFlags().StringVarP(&inputCompression, "compression", "c", "", "compression mode of file (can be autodected from file extension)")
+	rootCmd.PersistentFlags().StringVarP(&inputCompression, "compression", "c", "", "compression mode of file (can be autodected from file extension) [xz, gz, bz2]")
 
 }
+
+func checkCompression() {
+	if err := (compAlg)(inputCompression).isValid(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+}
+
 
 func initWriter() {
 	var err error
