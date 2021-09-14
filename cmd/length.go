@@ -16,9 +16,9 @@ limitations under the License.
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"io"
-	"log"
 
 	"github.com/lucblassel/fastago/pkg/seqs"
 	"github.com/spf13/cobra"
@@ -37,34 +37,37 @@ var lengthCmd = &cobra.Command{
 		- average (or mean) will display the average lengh
 		- min (or minimum) will display the minimum length
 		- max (or maximum) will display the maximum length`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 
 		records := make(chan seqs.SeqRecord)
 		errs := make(chan error)
 
 		go seqs.ReadFastaRecords(inputReader, records, errs)
 
+		var err error
+
 		switch lengthMode {
 		case "each":
-			getEach(records, errs, outputWriter)
+			err = getEach(records, errs, outputWriter)
 		case "average":
-			getAverage(records, errs, outputWriter)
+			err = getAverage(records, errs, outputWriter)
 		case "mean":
-			getAverage(records, errs, outputWriter)
+			err = getAverage(records, errs, outputWriter)
 		case "min":
-			getMin(records, errs, outputWriter)
+			err = getMin(records, errs, outputWriter)
 		case "minimum":
-			getMin(records, errs, outputWriter)
+			err = getMin(records, errs, outputWriter)
 		case "max":
-			getMax(records, errs, outputWriter)
+			err = getMax(records, errs, outputWriter)
 		case "maximum":
-			getMax(records, errs, outputWriter)
+			err = getMax(records, errs, outputWriter)
 		default:
-			log.Fatalf(
+			return errors.New(fmt.Sprintf(
 				"Mode %s not recognized.\n"+
 					"The mode must be one of the following values: "+
-					"'each' 'average' 'mean' 'min' 'minimum' 'max' 'maximum'", lengthMode)
+					"'each' 'average' 'mean' 'min' 'minimum' 'max' 'maximum'", lengthMode))
 		}
+		return err
 	},
 }
 
@@ -74,17 +77,20 @@ func init() {
 	lengthCmd.Flags().StringVarP(&lengthMode, "mode", "m", "each", "How to display lengths")
 }
 
-type Record struct {
-	Name   string
-	Length int
-}
+//type Record struct {
+//	Name   string
+//	Length int
+//}
 
 func getEach(records chan seqs.SeqRecord, errs chan error, output io.Writer) error {
 
 	for records != nil && errs != nil {
 		select {
 		case record := <-records:
-			fmt.Fprintf(output, "%s\t%d\n", record.Name, record.Seq.Length())
+			_, err := fmt.Fprintf(output, "%s\t%d\n", record.Name, record.Seq.Length())
+			if err != nil {
+				return err
+			}
 		case err := <-errs:
 			return err
 		}
@@ -105,8 +111,8 @@ func getAverage(records chan seqs.SeqRecord, errs chan error, output io.Writer) 
 			if err != nil {
 				return err
 			}
-			fmt.Fprintln(output, float32(total)/float32(count))
-			return nil
+			_, err = fmt.Fprintln(output, float32(total)/float32(count))
+			return err
 		}
 	}
 	return nil
@@ -125,8 +131,8 @@ func getMin(records chan seqs.SeqRecord, errs chan error, output io.Writer) erro
 			if err != nil {
 				return err
 			}
-			fmt.Fprintln(output, min)
-			return nil
+			_, err = fmt.Fprintln(output, min)
+			return err
 		}
 	}
 	return nil
@@ -145,8 +151,8 @@ func getMax(records chan seqs.SeqRecord, errs chan error, output io.Writer) erro
 			if err != nil {
 				return err
 			}
-			fmt.Fprintln(output, max)
-			return nil
+			_, err = fmt.Fprintln(output, max)
+			return err
 		}
 	}
 	return nil
