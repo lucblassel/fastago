@@ -1,5 +1,5 @@
 /*
-Copyright © 2021 NAME HERE <EMAIL ADDRESS>
+Copyright © 2021 LUC BLASSEL
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,23 +16,56 @@ limitations under the License.
 package cmd
 
 import (
+	"bufio"
 	"fmt"
-
+	"github.com/lucblassel/fastago/pkg/seqs"
 	"github.com/spf13/cobra"
+	"os"
 )
+
+var namesFile string
 
 // subsetCmd represents the subset command
 var subsetCmd = &cobra.Command{
 	Use:   "subset",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Subset sequences by name",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		var names map[string]bool
+		var err error
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("subset called")
+		if namesFile != "" {
+			names, err = readNames(namesFile)
+			if err != nil {
+				return err
+			}
+		} else {
+			names = make(map[string]bool)
+			for _, name := range args {
+				names[name] = true
+			}
+		}
+
+		records := make(chan seqs.SeqRecord)
+		errs := make(chan error)
+
+		go seqs.ReadFastaRecords(inputReader, records, errs)
+
+		for records != nil && errs != nil {
+			select {
+			case record := <-records:
+				if names[record.Name] {
+					output, err := record.Seq.FormatSeq(outputLineWidth)
+					_, err = fmt.Fprintf(outputWriter, ">%s\n%s\n", record.Name, output)
+					if err != nil {
+						return err
+					}
+				}
+			case err := <-errs:
+				return err
+			}
+		}
+
+		return nil
 	},
 }
 
@@ -47,5 +80,26 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// subsetCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	subsetCmd.Flags().StringVarP(&namesFile, "names", "n", "", "file containing the names of sequences to keep. One name by line")
+}
+
+func readNames(filename string) (map[string]bool, error) {
+	names := make(map[string]bool)
+	input, err := os.Open(filename)
+	defer input.Close()
+
+	if err != nil {
+		return names, err
+	}
+	scanner := bufio.NewScanner(input)
+	for scanner.Scan() {
+		name := scanner.Text()
+		names[name] = true
+	}
+
+	if err := scanner.Err(); err != nil {
+		return names, err
+	}
+
+	return names, nil
 }
