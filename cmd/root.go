@@ -51,45 +51,48 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initIO)
+	cobra.OnInitialize(initReader, initWriter)
 
 	rootCmd.PersistentFlags().StringVarP(&inputFileName, "input", "i", "", "input file (default is stdin)")
 	rootCmd.PersistentFlags().StringVarP(&outputFileName, "output", "o", "", "output file (default is stdout)")
 	rootCmd.PersistentFlags().StringVarP(&inputCompression, "compression", "c", "", "compression mode of file (can be autodected from file extension)")
+
 }
 
-func initIO() {
+func initWriter() {
 	var err error
-	inputReader, err = getReader(inputFileName, inputCompression)
 
 	if outputFileName != "" {
 		outputWriter, err = os.Create(outputFileName)
 		if err != nil {
-			log.Fatal("Error opening output file: ", err)
+			log.Fatal(err)
 		}
 	} else {
 		outputWriter = os.Stdout
 	}
 }
 
-func getReader(filename string, compAlg string) (io.Reader, error) {
+func initReader(){
 	var reader io.Reader
 	var err error
 
 	if inputFileName != "" {
-		reader, err = os.Open(filename)
+		reader, err = os.Open(inputFileName)
 		if err != nil {
-			return nil, err
+			log.Fatal(err)
 		}
 	} else {
 		reader = os.Stdin
 	}
 
-	if compAlg == "" {
-		compAlg = filepath.Ext(filename)[1:]
+	if inputCompression == "" {
+		inputCompression = filepath.Ext(inputFileName)[1:]
 	}
 
-	return deCompress(compAlg, &reader)
+	inputReader, err =  deCompress(inputCompression, &reader)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 
