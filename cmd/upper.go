@@ -17,9 +17,9 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/lucblassel/fastago/pkg/seqs"
 	"strings"
 
-	"github.com/lucblassel/fastago/pkg/stream"
 	"github.com/spf13/cobra"
 )
 
@@ -29,25 +29,24 @@ var upperCmd = &cobra.Command{
 	Short: "Uppercase all sequence nucleotides",
 	RunE: func(cmd *cobra.Command, args []string) error {
 
-		lines := make(chan stream.Line)
+		records := make(chan seqs.SeqRecord)
 		errs := make(chan error)
 
-		go stream.StreamFasta(inputReader, lines, errs)
-		var err error
+		go seqs.ReadFastaRecords(inputReader, records, errs)
 
-		select {
-		case line := <-lines:
-			if line.IsName {
-				_, err = fmt.Fprintln(outputWriter, line.Line)
-			} else {
-				_, err = fmt.Fprintln(outputWriter, strings.ToUpper(line.Line))
-			}
-			if err != nil {
+		for records != nil && errs != nil {
+			select {
+			case record := <-records:
+				output, err := record.Seq.FormatSeq(outputLineWidth)
+				_, err = fmt.Fprintf(outputWriter, ">%s\n%s\n", record.Name, strings.ToUpper(output))
+				if err != nil {
+					return err
+				}
+			case err := <-errs:
 				return err
 			}
-		case err := <-errs:
-			return err
 		}
+
 		return nil
 	},
 }
