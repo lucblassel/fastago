@@ -2,6 +2,7 @@ package seqs
 
 import (
 	"bufio"
+	"errors"
 	"io"
 	"strings"
 )
@@ -15,6 +16,26 @@ type SeqRecord struct {
 
 func (seq *Seq) Length() int {
 	return len(*seq)
+}
+
+func (seq *Seq) FormatSeq(width int) (string, error) {
+	if width <= 0 {
+		return "", errors.New("width of fasta line must be > 0")
+	}
+	num := (seq.Length() - 1) / (width + 1)
+	chunks := make([]string, 0, num)
+	length, start := 0, 0
+	for i := 0; i < seq.Length(); i++ {
+		if length == width {
+			chunks = append(chunks, string(*seq)[start:i])
+			length = 0
+			start = i
+		}
+		length++
+	}
+	chunks = append(chunks, string(*seq)[start:])
+
+	return strings.Join(chunks, "\n"), nil
 }
 
 func ReadFastaRecords(input io.Reader, output chan SeqRecord, errs chan error) {
