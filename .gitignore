@@ -3,3 +3,6 @@ bin/
 
 # test fasta files
 test.fasta
+test.fasta*
+
+.idea/
