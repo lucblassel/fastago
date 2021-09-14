@@ -1,5 +1,5 @@
 /*
-Copyright © 2021 NAME HERE <EMAIL ADDRESS>
+Copyright © 2021 LUC BLASSEL
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import (
 var inputFileName string
 var outputFileName string
 var inputCompression string
+var outputLineWidth int
 
 var inputReader io.Reader
 var outputWriter io.Writer
@@ -45,12 +46,11 @@ const (
 	)
 
 func (comp compAlg) isValid() error {
-	fmt.Println("comp", comp)
 	switch comp {
 	case None, GZ, XZ, BZ2:
 		return nil
 	}
-	return errors.New("invalid compression method.")
+	return errors.New("invalid compression method")
 }
 
 
@@ -70,12 +70,25 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initReader, initWriter, checkCompression)
+	cobra.OnInitialize(initReader, initWriter, checkCompression, checkLineWidth)
 
-	rootCmd.PersistentFlags().StringVarP(&inputFileName, "input", "i", "", "input file (default is stdin)")
-	rootCmd.PersistentFlags().StringVarP(&outputFileName, "output", "o", "", "output file (default is stdout)")
-	rootCmd.PersistentFlags().StringVarP(&inputCompression, "compression", "c", "", "compression mode of file (can be autodected from file extension) [xz, gz, bz2]")
+	rootCmd.PersistentFlags().StringVarP(&inputFileName, "input", "i", "",
+		"input file (default is stdin)")
+	rootCmd.PersistentFlags().StringVarP(&outputFileName, "output", "o", "",
+		"output file (default is stdout)")
+	rootCmd.PersistentFlags().StringVarP(&inputCompression, "compression", "c", "",
+		"compression mode of file (can be autodected from file extension) [xz, gz, bz2]")
+	rootCmd.PersistentFlags().IntVarP(&outputLineWidth, "linewidth", "w", 80,
+		"linewidth for sequences in output")
 
+}
+
+func checkLineWidth() {
+	if outputLineWidth <= 0 {
+		err := errors.New("output linewidth must be > 0")
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }
 
 func checkCompression() {
@@ -112,8 +125,11 @@ func initReader(){
 		reader = os.Stdin
 	}
 
-	if inputCompression == "" {
-		inputCompression = filepath.Ext(inputFileName)[1:]
+	if inputCompression == "" && inputFileName != "" {
+		ext := filepath.Ext(inputFileName)[1:]
+		if ext != "fasta" && ext != "fa" {
+			inputCompression = ext
+		}
 	}
 
 	inputReader, err =  deCompress(inputCompression, &reader)

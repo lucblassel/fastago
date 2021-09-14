@@ -1,5 +1,5 @@
 /*
-Copyright © 2021 NAME HERE <EMAIL ADDRESS>
+Copyright © 2021 LUC BLASSEL
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -33,13 +33,17 @@ var upperCmd = &cobra.Command{
 		errs := make(chan error)
 
 		go stream.StreamFasta(inputReader, lines, errs)
+		var err error
 
 		select {
 		case line := <-lines:
 			if line.IsName {
-				fmt.Fprintln(outputWriter, line.Line)
+				_, err = fmt.Fprintln(outputWriter, line.Line)
 			} else {
-				fmt.Fprintln(outputWriter, strings.ToUpper(line.Line))
+				_, err = fmt.Fprintln(outputWriter, strings.ToUpper(line.Line))
+			}
+			if err != nil {
+				return err
 			}
 		case err := <-errs:
 			return err

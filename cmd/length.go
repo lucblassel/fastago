@@ -1,5 +1,5 @@
 /*
-Copyright © 2021 NAME HERE <EMAIL ADDRESS>
+Copyright © 2021 LUC BLASSEL
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ var lengthCmd = &cobra.Command{
 			err = getMax(records, errs, outputWriter)
 		default:
 			return errors.New(fmt.Sprintf(
-				"Mode %s not recognized.\n"+
+				"mode %s not recognized.\n"+
 					"The mode must be one of the following values: "+
 					"'each' 'average' 'mean' 'min' 'minimum' 'max' 'maximum'", lengthMode))
 		}
@@ -76,11 +76,6 @@ func init() {
 
 	lengthCmd.Flags().StringVarP(&lengthMode, "mode", "m", "each", "How to display lengths")
 }
-
-//type Record struct {
-//	Name   string
-//	Length int
-//}
 
 func getEach(records chan seqs.SeqRecord, errs chan error, output io.Writer) error {
 
