@@ -16,17 +16,21 @@ limitations under the License.
 package cmd
 
 import (
+	"compress/bzip2"
+	"compress/gzip"
 	"fmt"
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
+	"github.com/ulikunitz/xz"
 )
 
 var inputFileName string
 var outputFileName string
-var compression string
+var inputCompression string
 
 var inputReader io.Reader
 var outputWriter io.Writer
@@ -34,7 +38,7 @@ var outputWriter io.Writer
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "fastago",
-	Short: "Usefule commands to work with fasta files",
+	Short: "Useful commands to work with fasta files",
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -51,19 +55,12 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVarP(&inputFileName, "input", "i", "", "input file (default is stdin)")
 	rootCmd.PersistentFlags().StringVarP(&outputFileName, "output", "o", "", "output file (default is stdout)")
-	rootCmd.PersistentFlags().StringVarP(&compression, "compression", "c", "", "compression mode of file")
+	rootCmd.PersistentFlags().StringVarP(&inputCompression, "compression", "c", "", "compression mode of file (can be autodected from file extension)")
 }
 
 func initIO() {
 	var err error
-	if inputFileName != "" {
-		inputReader, err = os.Open(inputFileName)
-		if err != nil {
-			log.Fatal("Error opening input file: ", err)
-		}
-	} else {
-		inputReader = os.Stdin
-	}
+	inputReader, err = getReader(inputFileName, inputCompression)
 
 	if outputFileName != "" {
 		outputWriter, err = os.Create(outputFileName)
@@ -72,5 +69,40 @@ func initIO() {
 		}
 	} else {
 		outputWriter = os.Stdout
+	}
+}
+
+func getReader(filename string, compAlg string) (io.Reader, error) {
+	var reader io.Reader
+	var err error
+
+	if inputFileName != "" {
+		reader, err = os.Open(filename)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		reader = os.Stdin
+	}
+
+	if compAlg == "" {
+		compAlg = filepath.Ext(filename)[1:]
+	}
+
+	return deCompress(compAlg, &reader)
+}
+
+
+
+func deCompress(compAlg string, reader *io.Reader) (io.Reader, error) {
+	switch compAlg {
+	case "gz":
+		return gzip.NewReader(*reader)
+	case "bz2":
+		return bzip2.NewReader(*reader), nil
+	case "xz":
+		return xz.NewReader(*reader)
+	default:
+		return *reader, nil
 	}
 }
