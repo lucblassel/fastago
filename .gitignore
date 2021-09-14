@@ -1,5 +1,6 @@
 # binaries
 bin/
+fastago
 
 # test fasta files
 test.fasta
