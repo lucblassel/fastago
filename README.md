@@ -43,7 +43,7 @@ Make sure you have [go `1.16` installed](https://golang.org/doc/install). Then c
 - **stats** : get statistics and information on the sequences
   - **count** : count sequences in file
   - **length** : get length of sequences in file. *(can also output the average/min/max)*
-- **subset** : subset the files, keeping only specified sequences. Works with regex `(TODO)`, a file of names or positional arguments. 
+- **subset** : subset the files, keeping only specified sequences. Works with regex, a file of names or positional arguments. 
 - **transform** : apply transformtaion functions to sequences
   - **upper** : transform sequence bases to uppercase.
   - **lower** : transform sequence bases to uppercase.

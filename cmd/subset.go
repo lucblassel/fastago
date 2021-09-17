@@ -21,66 +21,48 @@ import (
 	"github.com/lucblassel/fastago/pkg/seqs"
 	"github.com/spf13/cobra"
 	"os"
+	"regexp"
 )
 
 var namesFile string
+var regexSelector string
+var exclude bool
 
 // subsetCmd represents the subset command
 var subsetCmd = &cobra.Command{
 	Use:   "subset",
 	Short: "Subset sequences by name",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var names map[string]bool
+
 		var err error
-
-		if namesFile != "" {
-			names, err = readNames(namesFile)
-			if err != nil {
-				return err
-			}
+		if regexSelector != "" {
+			err = subsetFromRegex(regexSelector)
 		} else {
-			names = make(map[string]bool)
-			for _, name := range args {
-				names[name] = true
-			}
-		}
+			var names map[string]bool
 
-		records := make(chan seqs.SeqRecord)
-		errs := make(chan error)
-
-		go seqs.ReadFastaRecords(inputReader, records, errs)
-
-		for records != nil && errs != nil {
-			select {
-			case record := <-records:
-				if names[record.Name] {
-					output, err := record.Seq.FormatSeq(outputLineWidth)
-					_, err = fmt.Fprintf(outputWriter, ">%s\n%s\n", record.Name, output)
-					if err != nil {
-						return err
-					}
+			if namesFile != "" {
+				names, err = readNames(namesFile)
+				if err != nil {
+					return err
 				}
-			case err := <-errs:
-				return err
+			} else {
+				names = make(map[string]bool)
+				for _, name := range args {
+					names[name] = true
+				}
 			}
+			err = subsetFromNames(names)
 		}
 
-		return nil
+		return err
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(subsetCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// subsetCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
 	subsetCmd.Flags().StringVarP(&namesFile, "names", "n", "", "file containing the names of sequences to keep. One name by line")
+	subsetCmd.Flags().StringVarP(&regexSelector, "regex", "r", "", "Regex to select matching sequence names (will take precedence if specified)")
+	subsetCmd.Flags().BoolVarP(&exclude, "exclude", "x", false, "Exclude sequences instead of keeping them")
 }
 
 func readNames(filename string) (map[string]bool, error) {
@@ -102,4 +84,59 @@ func readNames(filename string) (map[string]bool, error) {
 	}
 
 	return names, nil
+}
+
+func subsetFromNames(names map[string]bool) error {
+
+	records := make(chan seqs.SeqRecord)
+	errs := make(chan error)
+
+	go seqs.ReadFastaRecords(inputReader, records, errs)
+
+	for records != nil && errs != nil {
+		select {
+		case record := <-records:
+			if names[record.Name] != exclude {
+				output, err := record.Seq.FormatSeq(outputLineWidth)
+				_, err = fmt.Fprintf(outputWriter, ">%s\n%s\n", record.Name, output)
+				if err != nil {
+					return err
+				}
+			}
+		case err := <-errs:
+			return err
+		}
+	}
+
+	return nil
+}
+
+func subsetFromRegex(expression string) error {
+	regex, err := regexp.Compile(expression)
+	if err != nil {
+		return err
+	}
+
+	records := make(chan seqs.SeqRecord)
+	errs := make(chan error)
+
+	go seqs.ReadFastaRecords(inputReader, records, errs)
+
+	for records != nil && errs != nil {
+		select {
+		case record := <-records:
+			if regex.MatchString(record.Name) != exclude {
+				output, err := record.Seq.FormatSeq(outputLineWidth)
+				_, err = fmt.Fprintf(outputWriter, ">%s\n%s\n", record.Name, output)
+				if err != nil {
+					return err
+				}
+			}
+		case err := <-errs:
+			return err
+		}
+	}
+
+	return nil
+
 }
