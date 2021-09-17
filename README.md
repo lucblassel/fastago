@@ -39,7 +39,7 @@ Make sure you have [go `1.16` installed](https://golang.org/doc/install). Then c
 `go build` or `go build -o <binaryName>` if you want to specify another name than `fastago`. 
 
 ## Commands
-- **rename** : rename sequences with either a regex or a map file `(TODO)`
+- **rename** : rename sequences with either a regex or a map file
 - **stats** : get statistics and information on the sequences
   - **count** : count sequences in file
   - **length** : get length of sequences in file. *(can also output the average/min/max)*

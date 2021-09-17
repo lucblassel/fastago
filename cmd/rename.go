@@ -16,10 +16,19 @@ limitations under the License.
 package cmd
 
 import (
+	"bufio"
+	"errors"
 	"fmt"
-
+	"github.com/lucblassel/fastago/pkg/seqs"
 	"github.com/spf13/cobra"
+	"os"
+	"regexp"
+	"strings"
 )
+
+var mapFile string
+var regexRenamer string
+var replaceGroup string
 
 // renameCmd represents the rename command
 var renameCmd = &cobra.Command{
@@ -31,21 +40,110 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("rename called")
+	RunE: func(cmd *cobra.Command, args []string) error {
+
+		if regexRenamer != "" {
+
+			if replaceGroup == "" {
+				return errors.New("if using regex renaming the --replace flag must be specified")
+			}
+
+			return renameFromRegex(regexRenamer, replaceGroup)
+		}
+
+		if mapFile != "" {
+			renamer, err := readMap(mapFile)
+			if err != nil {
+				return err
+			}
+			return renameFromMap(renamer)
+		}
+
+		return errors.New("you must specify a regular expression or a map file to rename sequences")
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(renameCmd)
+	renameCmd.Flags().StringVarP(&mapFile, "map", "m", "", "Tab separated file mapping old names to new names. 1 operation per line")
+	renameCmd.Flags().StringVarP(&regexRenamer, "regex", "r", "", "Regex to match part of the sequence name")
+	renameCmd.Flags().StringVarP(&replaceGroup, "replace", "p", "", "Replace matched element with this")
+}
 
-	// Here you will define your flags and configuration settings.
+func readMap(filename string) (map[string]string, error) {
+	names := make(map[string]string)
+	input, err := os.Open(filename)
+	defer input.Close()
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// renameCmd.PersistentFlags().String("foo", "", "A help for foo")
+	if err != nil {
+		return names, err
+	}
+	scanner := bufio.NewScanner(input)
+	for scanner.Scan() {
+		line := scanner.Text()
+		split := strings.Split(line, "\t")
+		names[split[0]] = split[1]
+	}
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// renameCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	if err := scanner.Err(); err != nil {
+		return names, err
+	}
+
+	return names, nil
+}
+
+func renameFromMap(renamer map[string]string) error {
+
+	records := make(chan seqs.SeqRecord)
+	errs := make(chan error)
+
+	go seqs.ReadFastaRecords(inputReader, records, errs)
+
+	for records != nil && errs != nil {
+		select {
+		case record := <-records:
+			newName := record.Name
+			if val, ok := renamer[newName]; ok {
+				newName = val
+			}
+			output, err := record.Seq.FormatSeq(outputLineWidth)
+			_, err = fmt.Fprintf(outputWriter, ">%s\n%s\n", newName, output)
+			if err != nil {
+				return err
+			}
+		case err := <-errs:
+			return err
+		}
+	}
+
+	return nil
+}
+
+func renameFromRegex(expression string, replace string) error {
+	regex, err := regexp.Compile(expression)
+	if err != nil {
+		return err
+	}
+
+	records := make(chan seqs.SeqRecord)
+	errs := make(chan error)
+
+	go seqs.ReadFastaRecords(inputReader, records, errs)
+
+	for records != nil && errs != nil {
+		select {
+		case record := <-records:
+			newName := regex.ReplaceAllString(record.Name, replace)
+			output, err := record.Seq.FormatSeq(outputLineWidth)
+			_, err = fmt.Fprintf(outputWriter, ">%s\n%s\n", newName, output)
+			if err != nil {
+				return err
+			}
+		case err := <-errs:
+			return err
+		}
+	}
+
+	return nil
+
 }
