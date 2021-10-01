@@ -88,3 +88,5 @@ There are 2 ways to subset your fasta file:
 
 If you specify the `-x` or `--exclude` flag you specify the sequences to exclude instead of the sequences to keep.
 
+## Contributing
+If you wish to contribute to this project check out our [contribution guidelines](https://github.com/lucblassel/fastago/blob/main/CONTRIBUTING.md)
