@@ -44,10 +44,12 @@ Make sure you have [go `1.16` installed](https://golang.org/doc/install). Then c
 - **stats** : get statistics and information on the sequences
   - **count** : count sequences in file
   - **length** [🏳](#length) : get length of sequences in file *(can also output the average/min/max)* 
+  - **freqs** [🏳](#freqs) : get average frequencies of bases in file *(can also output frequencies in each sequence)*
 - **subset** [🏳](#subset) : subset the files, keeping only specified sequences. Works with regex, a file of names or positional arguments
 - **transform** : apply transformtaion functions to sequences
   - **upper** : transform sequence bases to uppercase
-  - **lower** : transform sequence bases to uppercase
+  - **lower** : transform sequence bases to lowercase
+  - **replace base1 base2** : transform sequence replace base1 with base2
 - **help** : show usage message
 - **version** : get current version of fastago
 - **completion** : generate autocompletion script for bash, zsh, fish or powershell *(thank you [cobra](https://github.com/spf13/cobra) 🙏)*
@@ -87,6 +89,12 @@ There are 2 ways to subset your fasta file:
  - You can use the `r` or `--regex` flag to specify a regular expression that matches the sequences you want to keep. 
 
 If you specify the `-x` or `--exclude` flag you specify the sequences to exclude instead of the sequences to keep.
+
+#### freqs
+With the `-m` or `--mode` flag you can choose which information you want to display: 
+ - `-m each` : will display the frequencies in each sequence after it's name on a single line
+
+Not specifying the m flag will output the frequencies averaged over all sequences.
 
 ## Contributing
 If you wish to contribute to this project check out our [contribution guidelines](https://github.com/lucblassel/fastago/blob/main/CONTRIBUTING.md)
