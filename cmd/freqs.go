@@ -61,7 +61,7 @@ func init() {
 	freqsCmd.Flags().StringVarP(&freqsMode, "mode", "m", "", "How to display frequencies")
 }
 
-func getFreqs(record seqs.SeqRecord, errs chan error, output io.Writer) error {
+func getFreqs(record seqs.SeqRecord, output io.Writer) error {
 	var totalCount float64 = 0
 	var countmap = make(map[rune]float64)
 
@@ -91,7 +91,7 @@ func getEachFreqs(records chan seqs.SeqRecord, errs chan error, output io.Writer
 	for records != nil && errs != nil {
 		select {
 		case record := <-records:
-			err := getFreqs(record, errs, output)
+			err := getFreqs(record, output)
 			if err != nil {
 				return err
 			}
