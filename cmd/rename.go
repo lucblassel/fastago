@@ -67,7 +67,11 @@ func init() {
 func readMap(filename string) (map[string]string, error) {
 	names := make(map[string]string)
 	input, err := os.Open(filename)
-	defer input.Close()
+	defer func() {
+		if closeErr := input.Close(); closeErr != nil {
+			err = closeErr
+		}
+	}()
 
 	if err != nil {
 		return names, err

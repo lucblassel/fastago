@@ -68,7 +68,11 @@ func init() {
 func readNames(filename string) (map[string]bool, error) {
 	names := make(map[string]bool)
 	input, err := os.Open(filename)
-	defer input.Close()
+	defer func() {
+		if closeErr := input.Close(); closeErr != nil {
+			err = closeErr
+		}
+	}()
 
 	if err != nil {
 		return names, err
