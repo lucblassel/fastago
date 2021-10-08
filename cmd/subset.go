@@ -68,7 +68,11 @@ func init() {
 func readNames(filename string) (map[string]bool, error) {
 	names := make(map[string]bool)
 	input, err := os.Open(filename)
-	defer input.Close()
+	defer func() {
+		if closeErr := input.Close(); closeErr != nil {
+			err = closeErr
+		}
+	}()
 
 	if err != nil {
 		return names, err
@@ -98,6 +102,9 @@ func subsetFromNames(names map[string]bool) error {
 		case record := <-records:
 			if names[record.Name] != exclude {
 				output, err := record.Seq.FormatSeq(outputLineWidth)
+				if err != nil {
+					return err
+				}
 				_, err = fmt.Fprintf(outputWriter, ">%s\n%s\n", record.Name, output)
 				if err != nil {
 					return err
@@ -127,6 +134,9 @@ func subsetFromRegex(expression string) error {
 		case record := <-records:
 			if regex.MatchString(record.Name) != exclude {
 				output, err := record.Seq.FormatSeq(outputLineWidth)
+				if err != nil {
+					return err
+				}
 				_, err = fmt.Fprintf(outputWriter, ">%s\n%s\n", record.Name, output)
 				if err != nil {
 					return err

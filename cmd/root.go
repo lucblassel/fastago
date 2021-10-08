@@ -40,9 +40,9 @@ var outputWriter io.Writer
 type compAlg string
 const (
 	GZ compAlg = "gz"
-	XZ = "xz"
-	BZ2 = "bz2"
-	None = ""
+	XZ compAlg = "xz"
+	BZ2 compAlg = "bz2"
+	None compAlg = ""
 	)
 
 func (comp compAlg) isValid() error {

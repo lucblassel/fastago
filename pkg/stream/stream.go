@@ -22,7 +22,7 @@ func StreamFasta(input io.Reader, output chan Line, errs chan error) {
 	for scanner.Scan() {
 		line := scanner.Text()
 
-		if len(line) != 0 && line[0] == '>' {
+		if line != "" && line[0] == '>' {
 			output <- Line{Line: line, IsName: true}
 		} else {
 			output <- Line{Line: line, IsName: false}

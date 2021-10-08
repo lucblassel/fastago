@@ -67,7 +67,11 @@ func init() {
 func readMap(filename string) (map[string]string, error) {
 	names := make(map[string]string)
 	input, err := os.Open(filename)
-	defer input.Close()
+	defer func() {
+		if closeErr := input.Close(); closeErr != nil {
+			err = closeErr
+		}
+	}()
 
 	if err != nil {
 		return names, err
@@ -129,6 +133,9 @@ func renameFromRegex(expression string, replace string) error {
 		case record := <-records:
 			newName := regex.ReplaceAllString(record.Name, replace)
 			output, err := record.Seq.FormatSeq(outputLineWidth)
+			if err != nil {
+				return err
+			}
 			_, err = fmt.Fprintf(outputWriter, ">%s\n%s\n", newName, output)
 			if err != nil {
 				return err
