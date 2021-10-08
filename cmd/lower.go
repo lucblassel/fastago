@@ -38,6 +38,9 @@ var lowerCmd = &cobra.Command{
 			select {
 			case record := <-records:
 				output, err := record.Seq.FormatSeq(outputLineWidth)
+				if err != nil {
+					return err
+				}
 				_, err = fmt.Fprintf(outputWriter, ">%s\n%s\n", record.Name, strings.ToLower(output))
 				if err != nil {
 					return err

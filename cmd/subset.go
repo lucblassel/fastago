@@ -102,6 +102,9 @@ func subsetFromNames(names map[string]bool) error {
 		case record := <-records:
 			if names[record.Name] != exclude {
 				output, err := record.Seq.FormatSeq(outputLineWidth)
+				if err != nil {
+					return err
+				}
 				_, err = fmt.Fprintf(outputWriter, ">%s\n%s\n", record.Name, output)
 				if err != nil {
 					return err
@@ -131,6 +134,9 @@ func subsetFromRegex(expression string) error {
 		case record := <-records:
 			if regex.MatchString(record.Name) != exclude {
 				output, err := record.Seq.FormatSeq(outputLineWidth)
+				if err != nil {
+					return err
+				}
 				_, err = fmt.Fprintf(outputWriter, ">%s\n%s\n", record.Name, output)
 				if err != nil {
 					return err

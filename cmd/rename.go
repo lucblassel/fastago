@@ -133,6 +133,9 @@ func renameFromRegex(expression string, replace string) error {
 		case record := <-records:
 			newName := regex.ReplaceAllString(record.Name, replace)
 			output, err := record.Seq.FormatSeq(outputLineWidth)
+			if err != nil {
+				return err
+			}
 			_, err = fmt.Fprintf(outputWriter, ">%s\n%s\n", newName, output)
 			if err != nil {
 				return err

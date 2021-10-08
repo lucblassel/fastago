@@ -28,7 +28,13 @@ var statsCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var err error
 		count, err := countSeqs(inputReader)
+		if err != nil {
+			return err
+		}
 		_, err = fmt.Fprintf(outputWriter, "Sequence count:\t%d\n", count)
+		if err != nil {
+			return err
+		}
 		_, err = fmt.Fprint(outputWriter, "Other statistics...\n")
 		return err
 	},

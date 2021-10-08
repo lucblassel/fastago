@@ -29,6 +29,9 @@ var countCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var err error
 		count, err := countSeqs(inputReader)
+		if err != nil {
+			return err
+		}
 		_, err = fmt.Fprintln(outputWriter, count)
 		return err
 	},
