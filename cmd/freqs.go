@@ -62,36 +62,36 @@ func init() {
 }
 
 func getFreqs(record seqs.SeqRecord, errs chan error, output io.Writer) error {
-	var totalCount float64 = 0 
+	var totalCount float64 = 0
 	var countmap = make(map[rune]float64)
 
 	for _, char := range strings.ToUpper(string(record.Seq)) {
 		_, isPresent := countmap[char]
-		if(isPresent) {
-			countmap[char]+=1
-		}else{
-			countmap[char]=1	
+		if isPresent {
+			countmap[char] += 1
+		} else {
+			countmap[char] = 1
 		}
-		totalCount+=1
+		totalCount += 1
 	}
 
 	for char, count := range countmap {
-		countmap[char] = count/totalCount
+		countmap[char] = count / totalCount
 	}
 
 	fmt.Fprintf(output, "%s\t", record.Name)
-	err := printmap(countmap, "  ", "\t\t", errs, output)
+	err := printmap(countmap, "  ", "\t\t", output)
 	fmt.Fprintf(output, "\n")
 
 	return err
 }
 
 func getEachFreqs(records chan seqs.SeqRecord, errs chan error, output io.Writer) error {
-	
+
 	for records != nil && errs != nil {
 		select {
 		case record := <-records:
-			err := getFreqs(record, errs, outputWriter)
+			err := getFreqs(record, errs, output)
 			if err != nil {
 				return err
 			}
@@ -104,29 +104,29 @@ func getEachFreqs(records chan seqs.SeqRecord, errs chan error, output io.Writer
 }
 
 func getAverageFreqs(records chan seqs.SeqRecord, errs chan error, output io.Writer) error {
-	var totalCount float64 = 0 
+	var totalCount float64 = 0
 	var countmap = make(map[rune]float64)
-	
+
 	for records != nil && errs != nil {
 		select {
-		case record := <-records:	
+		case record := <-records:
 			for _, char := range strings.ToUpper(string(record.Seq)) {
 				_, isPresent := countmap[char]
-				if(isPresent) {
-					countmap[char]+=1
-				}else{
-					countmap[char]=1	
+				if isPresent {
+					countmap[char] += 1
+				} else {
+					countmap[char] = 1
 				}
-				totalCount+=1
+				totalCount += 1
 			}
 		case err := <-errs:
 			if err != nil {
 				return err
 			}
 			for char, count := range countmap {
-				countmap[char] = count/totalCount
+				countmap[char] = count / totalCount
 			}
-			err = printmap(countmap, "\t", "\n", errs, output)
+			err = printmap(countmap, "\t", "\n", output)
 			return err
 		}
 	}
@@ -134,21 +134,21 @@ func getAverageFreqs(records chan seqs.SeqRecord, errs chan error, output io.Wri
 	return nil
 }
 
-func printmap(myMap map[rune]float64, sep string, endline string, errs chan error, output io.Writer) error {
+func printmap(myMap map[rune]float64, sep string, endline string, output io.Writer) error {
 	keys := make([]rune, 0, len(myMap))
-    for k := range myMap {
-        keys = append(keys, k)
-    }
+	for k := range myMap {
+		keys = append(keys, k)
+	}
 	sort.Slice(keys, func(i, j int) bool {
 		return keys[i] < keys[j]
 	})
 
 	for _, k := range keys {
-        _, err := fmt.Fprintf(output, "%s%s%.2f%s", string(k), sep, myMap[k], endline)
+		_, err := fmt.Fprintf(output, "%s%s%.2f%s", string(k), sep, myMap[k], endline)
 		if err != nil {
 			return err
 		}
-    }
+	}
 
 	return nil
 
