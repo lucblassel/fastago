@@ -16,7 +16,6 @@ limitations under the License.
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"io"
 
@@ -62,10 +61,10 @@ var lengthCmd = &cobra.Command{
 		case "maximum":
 			err = getMax(records, errs, outputWriter)
 		default:
-			return errors.New(fmt.Sprintf(
+			return fmt.Errorf(
 				"mode %s not recognized.\n"+
 					"The mode must be one of the following values: "+
-					"'each' 'average' 'mean' 'min' 'minimum' 'max' 'maximum'", lengthMode))
+					"'each' 'average' 'mean' 'min' 'minimum' 'max' 'maximum'", lengthMode)
 		}
 		return err
 	},

@@ -50,7 +50,7 @@ func ReadFastaRecords(input io.Reader, output chan SeqRecord, errs chan error) {
 	for scanner.Scan() {
 		line := scanner.Text()
 
-		if len(line) == 0 {
+		if line == "" {
 			continue
 		}
 
