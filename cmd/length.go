@@ -70,12 +70,13 @@ var lengthCmd = &cobra.Command{
 	},
 }
 
+// init adds command to root and deals with flags
 func init() {
 	statsCmd.AddCommand(lengthCmd)
-
 	lengthCmd.Flags().StringVarP(&lengthMode, "mode", "m", "each", "How to display lengths")
 }
 
+// getEach writes the length of each sequence in the input stream to the output stream
 func getEach(records chan seqs.SeqRecord, errs chan error, output io.Writer) error {
 
 	for records != nil && errs != nil {
@@ -93,6 +94,7 @@ func getEach(records chan seqs.SeqRecord, errs chan error, output io.Writer) err
 	return nil
 }
 
+// getAverage writes the average length of sequences to the output stream
 func getAverage(records chan seqs.SeqRecord, errs chan error, output io.Writer) error {
 	total, count := 0, 0
 
@@ -112,6 +114,7 @@ func getAverage(records chan seqs.SeqRecord, errs chan error, output io.Writer) 
 	return nil
 }
 
+// getMin writes the length of the shortest sequence to the output stream
 func getMin(records chan seqs.SeqRecord, errs chan error, output io.Writer) error {
 	min := -1
 
@@ -132,6 +135,7 @@ func getMin(records chan seqs.SeqRecord, errs chan error, output io.Writer) erro
 	return nil
 }
 
+// getMax writes the length of the longest sequence to the output stream
 func getMax(records chan seqs.SeqRecord, errs chan error, output io.Writer) error {
 	max := -1
 

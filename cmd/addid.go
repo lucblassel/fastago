@@ -55,6 +55,7 @@ var addidCmd = &cobra.Command{
 	},
 }
 
+// init adds the command to the root and deals with flags
 func init() {
 	rootCmd.AddCommand(addidCmd)
 	addidCmd.Flags().StringVarP(&prefix, "prefix", "p", "", "Prefix to add to sequence names")

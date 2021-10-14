@@ -25,6 +25,7 @@ var transformCmd = &cobra.Command{
 	Short: "transform the characters in sequences",
 }
 
+// init adds the command to the root
 func init() {
 	rootCmd.AddCommand(transformCmd)
 }

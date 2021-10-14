@@ -54,6 +54,7 @@ var lowerCmd = &cobra.Command{
 	},
 }
 
+// init adds command to root
 func init() {
 	transformCmd.AddCommand(lowerCmd)
 }
