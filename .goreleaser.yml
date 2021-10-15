@@ -7,11 +7,12 @@ before:
 builds:
   - env:
       - CGO_ENABLED=0
-      - VERSION={{ .Tag }}
     goos:
       - linux
       - windows
       - darwin
+ldflags:
+  - '-X github.com/lucblassel/fastago/version.Version={{ .Version }}'
 archives:
   - replacements:
       darwin: Darwin
