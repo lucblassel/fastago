@@ -37,6 +37,7 @@ var outputLineWidth int
 var inputReader io.Reader
 var outputWriter io.Writer
 
+// compAlg lists the supported I/O compression algorithms
 type compAlg string
 const (
 	GZ compAlg = "gz"
@@ -45,6 +46,7 @@ const (
 	None compAlg = ""
 	)
 
+// isValid checks if a specified compression method is supported
 func (comp compAlg) isValid() error {
 	switch comp {
 	case None, GZ, XZ, BZ2:
@@ -69,6 +71,7 @@ func Execute() {
 	}
 }
 
+// init checks input flags and launches I/O initialization
 func init() {
 	cobra.OnInitialize(initReader, initWriter, checkCompression, checkLineWidth)
 
@@ -83,6 +86,7 @@ func init() {
 
 }
 
+// checkLineWidth Checks if the specified linewidth for the output is valid
 func checkLineWidth() {
 	if outputLineWidth <= 0 {
 		err := errors.New("output linewidth must be > 0")
@@ -91,6 +95,7 @@ func checkLineWidth() {
 	}
 }
 
+// checkCompression Checks if compression algorithm is valid
 func checkCompression() {
 	if err := (compAlg)(inputCompression).isValid(); err != nil {
 		fmt.Println(err)
@@ -98,7 +103,7 @@ func checkCompression() {
 	}
 }
 
-
+// initWriter Initializes the output stream, either a specified file or stdout by default
 func initWriter() {
 	var err error
 
@@ -112,6 +117,7 @@ func initWriter() {
 	}
 }
 
+// initReader Initializes the input stream, either a specified file or stdin by default
 func initReader(){
 	var reader io.Reader
 	var err error
@@ -139,7 +145,7 @@ func initReader(){
 }
 
 
-
+// deCompress decompresses the inputReader to plain text with a supported compression algorithm
 func deCompress(compAlg string, reader *io.Reader) (io.Reader, error) {
 	switch compAlg {
 	case "gz":

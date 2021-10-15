@@ -37,10 +37,12 @@ var countCmd = &cobra.Command{
 	},
 }
 
+// init adds the command to the root
 func init() {
 	statsCmd.AddCommand(countCmd)
 }
 
+// countSeqs returns the number of seqRecord elements in the input stream
 func countSeqs(input io.Reader) (int, error) {
 	records := make(chan seqs.SeqRecord)
 	errs := make(chan error)

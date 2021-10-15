@@ -57,6 +57,7 @@ var renameCmd = &cobra.Command{
 	},
 }
 
+// init adds command to root and deals with flags
 func init() {
 	rootCmd.AddCommand(renameCmd)
 	renameCmd.Flags().StringVarP(&mapFile, "map", "m", "", "Tab separated file mapping old names to new names. 1 operation per line")
@@ -64,6 +65,7 @@ func init() {
 	renameCmd.Flags().StringVarP(&replaceGroup, "replace", "p", "", "Replace matched element with this")
 }
 
+// readMap transform the rename file to a map with the old name as key and the new name as value
 func readMap(filename string) (map[string]string, error) {
 	names := make(map[string]string)
 	input, err := os.Open(filename)
@@ -90,6 +92,7 @@ func readMap(filename string) (map[string]string, error) {
 	return names, nil
 }
 
+// renameFromMap prints the sequences renamed from a map file to the output stream
 func renameFromMap(renamer map[string]string) error {
 
 	records := make(chan seqs.SeqRecord)
@@ -117,6 +120,7 @@ func renameFromMap(renamer map[string]string) error {
 	return nil
 }
 
+// renameFromRegex prints the sequences renamed with a regular expression and repalcement group to the output stream
 func renameFromRegex(expression string, replace string) error {
 	regex, err := regexp.Compile(expression)
 	if err != nil {
