@@ -1,3 +1,6 @@
+// Package seqs allows to read a fasta formatted input stream as a
+// succession of whole sequences. Each sequence being a struct containing
+// its name and the full biological sequence.
 package seqs
 
 import (

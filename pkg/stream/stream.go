@@ -1,3 +1,6 @@
+// Package stream allows to read a fasta formatted input stream as lines.
+// every single line is accompanied by a boolean value indicating if it
+// is a name (true) or a sequence (false) line.
 package stream
 
 import (
