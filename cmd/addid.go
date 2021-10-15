@@ -42,7 +42,7 @@ var addidCmd = &cobra.Command{
 				if err != nil {
 					return err
 				}
-				_, err = fmt.Fprintf(outputWriter, ">%s\n%s\n", prefix + record.Name + suffix, output)
+				_, err = fmt.Fprintf(outputWriter, ">%s\n%s\n", prefix+record.Name+suffix, output)
 				if err != nil {
 					return err
 				}

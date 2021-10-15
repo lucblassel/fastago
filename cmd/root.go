@@ -39,12 +39,13 @@ var outputWriter io.Writer
 
 // compAlg lists the supported I/O compression algorithms
 type compAlg string
+
 const (
-	GZ compAlg = "gz"
-	XZ compAlg = "xz"
-	BZ2 compAlg = "bz2"
+	GZ   compAlg = "gz"
+	XZ   compAlg = "xz"
+	BZ2  compAlg = "bz2"
 	None compAlg = ""
-	)
+)
 
 // isValid checks if a specified compression method is supported
 func (comp compAlg) isValid() error {
@@ -54,7 +55,6 @@ func (comp compAlg) isValid() error {
 	}
 	return errors.New("invalid compression method")
 }
-
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -118,7 +118,7 @@ func initWriter() {
 }
 
 // initReader Initializes the input stream, either a specified file or stdin by default
-func initReader(){
+func initReader() {
 	var reader io.Reader
 	var err error
 
@@ -138,12 +138,11 @@ func initReader(){
 		}
 	}
 
-	inputReader, err =  deCompress(inputCompression, &reader)
+	inputReader, err = deCompress(inputCompression, &reader)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
-
 
 // deCompress decompresses the inputReader to plain text with a supported compression algorithm
 func deCompress(compAlg string, reader *io.Reader) (io.Reader, error) {
