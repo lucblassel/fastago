@@ -11,8 +11,8 @@ builds:
       - linux
       - windows
       - darwin
-ldflags:
-  - '-X github.com/lucblassel/fastago/version.Version={{ .Version }}'
+    ldflags:
+      - '-X github.com/lucblassel/fastago/version.Version={{.Version }}'
 archives:
   - replacements:
       darwin: Darwin
