@@ -3,6 +3,7 @@ bin/
 fastago
 
 # test fasta files
+test_data/
 test.fasta
 test.fasta*
 *.txt
