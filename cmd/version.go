@@ -19,16 +19,15 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/lucblassel/fastago/version"
 )
-
-const VERSION = "alpha.0.1"
 
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Get current version of fastago",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(VERSION)
+		fmt.Println(version.Version)
 	},
 }
 

@@ -8,3 +8,4 @@ test.fasta*
 *.txt
 
 .idea/
+dist/
