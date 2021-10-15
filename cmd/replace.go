@@ -41,7 +41,7 @@ var replaceCmd = &cobra.Command{
 			select {
 			case record := <-records:
 				output, err := record.Seq.FormatSeq(outputLineWidth)
-				_, err = fmt.Fprintf(outputWriter, ">%s\n%s\n", record.Name, strings.Replace(output, args[0], args[1], -1))
+				_, err = fmt.Fprintf(outputWriter, ">%s\n%s\n", record.Name, strings.ReplaceAll(output, args[0], args[1]))
 				if err != nil {
 					return err
 				}
